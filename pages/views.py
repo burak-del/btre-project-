@@ -1,8 +1,31 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+
+from listings.models import Listing
+from realtors.models import Realtor
+
 
 def index(request):
-    return render(request, 'pages/index.html')
+    listings = Listing.objects.order_by('-list_date').filter(is_published=True)
+
+    paginator = Paginator(listings, 3)
+    page = request.GET.get('page')
+    paged_listings = paginator.get_page(page)
+
+    context = {
+        'listings': paged_listings
+    }
+    return render(request, 'pages/index.html', context)
 
 def about(request):
-    return render(request, 'pages/about.html')
+    realtors=Realtor.objects.order_by('-hire_date')
+
+    mvp_realtor= Realtor.objects.order_by('-hire_date').filter(is_mvp=True)
+
+    context={
+        'realtors': realtors,
+        'mvp_realtor':mvp_realtor,
+    }
+
+    return render(request, 'pages/about.html', context)
