@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages, auth
 from django.contrib.auth.models import User
+from contacts.models import Contact
 
 
 def register(request):
@@ -23,11 +24,12 @@ def register(request):
                 else:
                     user = User.objects.create_user(
                         username=username, password=password, email=email, first_name=first_name, last_name=last_name)
-                        #auth.login(request,user)
-                        #messages.success(request, 'user is created')
-                        #return redirect('index')
-                    user.save();
-                    messages.success(request, 'you are now registerd and can log in')
+                    # auth.login(request,user)
+                    #messages.success(request, 'user is created')
+                    # return redirect('index')
+                    user.save()
+                    messages.success(
+                        request, 'you are now registerd and can log in')
                     return redirect('login')
 
         else:
@@ -43,7 +45,7 @@ def login(request):
         username = request.POST['username']
         password = request.POST['password']
 
-        user=auth.authenticate(username=username, password=password)
+        user = auth.authenticate(username=username, password=password)
         if user is not None:
             auth.login(request, user)
             messages.success(request, 'you are now logged in')
@@ -56,8 +58,15 @@ def login(request):
 
 
 def logout(request):
-    return redirect('index')
+    if request.method == 'POST':
+        auth.logout(request)
+        messages.success(request, 'You are now logout')
+        return redirect('index')
 
 
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    user_contacts=Contact.objects.order_by('-contact_date').filter(user_id=request.user.id)
+    context={
+        'contacts': user_contacts,
+    }
+    return render(request, 'accounts/dashboard.html',context)
